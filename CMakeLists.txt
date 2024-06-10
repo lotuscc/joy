@@ -1,0 +1,66 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(example LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(FFMEPG_HEADERS_DIR /usr/include)
+set(FFMPEG_LIBS_DIR /usr/lib)
+include_directories(${FFMEPG_HEADERS_DIR})
+link_directories(${FFMPEG_LIBS_DIR})
+set(FFMPEG_LIBS libavcodec.so libavformat.so libswscale.so libavdevice.so libavutil.so)
+
+include_directories("/home/lotuscc/gitlib/tensorrt/TensorRT-8.6.1.6/include/")
+link_directories("/home/lotuscc/gitlib/tensorrt/TensorRT-8.6.1.6/lib")
+
+include_directories("/opt/cuda/include/")
+link_directories("/opt/cuda/lib64")
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+set(TENSORRT_LIB_PATH "/home/lotuscc/gitlib/tensorrt/TensorRT-8.6.1.6/lib")
+set(CUDA_LIB_PATH "/opt/cuda/lib64")
+
+file(GLOB TensorRT_LIBS "${TENSORRT_LIB_PATH}/*.so")
+file(GLOB CUDA_LIBS "${CUDA_LIB_PATH}/*.so")
+
+include_directories("./context/")
+include_directories("./model/")
+include_directories("./tools/")
+# include_directories("./example/")
+
+add_executable(example main.cpp    
+    ffmpeg.cpp    
+    globalComm.cpp
+    context/baseContext.h context/contextDoer_handPoseX.h context/contextDoer_yolov8Detect.h model/baseModel.h model/model_handPoseX.h model/model_yolov8Detect.h model/templateModel.h
+    context/contextDoer_yolov8Pose.h
+    tools/CustomSink.h tools/ffmpeg.h tools/globalComm.h tools/preProcess.h
+
+    example/example_yolov8Detect.h
+    example/example_handPoseX.h
+    example/example_yolov8Pose.h
+    context/contextDoer_yolov8Cls.h
+    example/example_yolov8Cls.h
+    context/contextDoer_scrfd.h
+    example/example_scrfd.h
+    context/contextDoer_arcFace.h
+    example/example_arcFace.h
+    example/example_ffmpeg.h
+)
+
+find_package(g3log CONFIG REQUIRED)
+find_package(OpenCV 4  REQUIRED)
+target_link_libraries(example PRIVATE g3log ${FFMPEG_LIBS} ${TensorRT_LIBS} ${CUDA_LIBS} opencv_highgui opencv_core opencv_imgproc opencv_dnn)
+# target_link_libraries(example ${FFMPEG_LIBS})
+# target_link_libraries(example opencv_highgui opencv_core opencv_imgproc)
+# target_link_libraries(example ${OpenCV_LIBS})
+
+MESSAGE( STATUS "this var key = ${OpenCV_LIBS}.")
+
+include(GNUInstallDirs)
+install(TARGETS example
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
