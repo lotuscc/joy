@@ -74,6 +74,7 @@ public:
 
             scrfdFace det;
             det.box = boxVec[idx];
+            det.matchBox = getMatchFaceRect(boxVec[idx], inferData.cols, inferData.rows);
             det.conf = confVec[idx];
             det.landMarks = landMarksVec[idx];
 
@@ -81,6 +82,18 @@ public:
         }
 
         std::cout << "exit \n";
+    }
+
+    cv::Rect getMatchFaceRect(const cv::Rect& box, int maxX, int maxY)
+    {
+        int x0 = std::max(0, box.x - box.width / 2);
+        int y0 = std::max(0, box.y - box.height / 2);
+        int x1 = std::min(box.x + box.width * 3 / 2, maxX);
+        int y1 = std::min(box.y + box.height * 3 / 2, maxY);
+
+        cv::Rect retRect(x0, y0, std::abs(x1 - x0), std::abs(y1 - y0));
+
+        return retRect;
     }
 };
 #endif // CONTEXTDOER_SCRFD_H

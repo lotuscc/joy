@@ -42,9 +42,9 @@ int main(int argc, char** argv)
     // example_yoloDetect_main();
     // example_handPoseX_main();
     // example_yolov8Cls_main();
-    // example_scrfdFace_main();
+    example_scrfdFace_main();
 
-    example_arcFace_main();
+    // example_arcFace_main();
 
     std::cout << "end! \n";
 }

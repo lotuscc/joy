@@ -48,6 +48,8 @@ add_executable(example main.cpp
     context/contextDoer_arcFace.h
     example/example_arcFace.h
     example/example_ffmpeg.h
+    tools/face_align.h
+    tools/facePreprocess.h
 )
 
 find_package(g3log CONFIG REQUIRED)
@@ -56,6 +58,10 @@ target_link_libraries(example PRIVATE g3log ${FFMPEG_LIBS} ${TensorRT_LIBS} ${CU
 # target_link_libraries(example ${FFMPEG_LIBS})
 # target_link_libraries(example opencv_highgui opencv_core opencv_imgproc)
 # target_link_libraries(example ${OpenCV_LIBS})
+
+# find_package(Boost REQUIRED)
+# include_directories(${Boost_INCLUDE_DIRS})
+# target_link_libraries(your_target ${Boost_LIBRARIES})
 
 MESSAGE( STATUS "this var key = ${OpenCV_LIBS}.")
 

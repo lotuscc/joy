@@ -1,6 +1,7 @@
 #ifndef EXAMPLE_SCRFD_H
 #define EXAMPLE_SCRFD_H
 #include "contextDoer_scrfd.h"
+#include "face_align.h"
 #include "globalComm.h"
 #include "templateModel.h"
 
@@ -29,11 +30,19 @@ void example_scrfdFace_main()
         LOG(INFO) << timeUse << " [0.1ms]";
     }
     for (int i = 0; i < out.faceVec.size(); ++i) {
-        cv::rectangle(inMat, out.faceVec[i].box, cv::Scalar(255, 155, 0));
+        cv::Mat alignMat = FacePreprocess::align_face(inMat, out.faceVec[i].matchBox, out.faceVec[i].landMarks);
+        static int x = 0;
+        std::string path = "/home/lotuscc/work/face/";
+        path = path + std::to_string(x++) + ".png";
+        cv::imwrite(path, alignMat);
+    }
+    for (int i = 0; i < out.faceVec.size(); ++i) {
+        cv::rectangle(inMat, out.faceVec[i].matchBox, cv::Scalar(255, 155, 0));
         for (cv::Point& p : out.faceVec[i].landMarks) {
             cv::circle(inMat, p, 2, cv::Scalar(255, 155, 0), 1);
         }
     }
+
     // 在窗口中显示图片
     cv::namedWindow("keypoint", 0);
     cv::imshow("keypoint", inMat);

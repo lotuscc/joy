@@ -28,6 +28,7 @@ struct yoloPose {
 
 struct scrfdFace {
     cv::Rect box;
+    cv::Rect matchBox;
     float conf = 0.1f;
     std::vector<cv::Point> landMarks;
 };
