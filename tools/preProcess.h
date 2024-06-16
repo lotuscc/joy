@@ -8,7 +8,7 @@ static void preProcessHandposeX(const cv::Mat& bgrMat, cv::Mat& outMat)
     cv::Mat modelInput = bgrMat;
     // cv::Mat blob;
     cv::Size modelShape(256, 256);
-    cv::dnn::blobFromImage(modelInput, outMat, 1.0 / 255.0, modelShape, cv::Scalar(128, 128, 128), false, false);
+    cv::dnn::blobFromImage(modelInput, outMat, 1.0 / 255.0, cv::Size(256, 256), cv::Scalar(128, 128, 128), false, false);
 }
 static void postProcessHandposeX(float* outData, std::vector<cv::Point>& pts, int inputH, int inputW)
 {
@@ -18,17 +18,17 @@ static void postProcessHandposeX(float* outData, std::vector<cv::Point>& pts, in
         pts.emplace_back(cv::Point(x, y));
     }
 }
-static void preProcessYolov8Detect(const cv::Mat& bgrMat, int outH, int outW, cv::Mat& outMat)
-{
-    cv::Mat modelInput = bgrMat;
-    cv::dnn::blobFromImage(modelInput, outMat, 1.0 / 255.0, cv::Size(outH, outW), cv::Scalar(0, 0, 0), true, false);
-}
+// static void preProcessYolov8Detect(const cv::Mat& bgrMat, int outH, int outW, cv::Mat& outMat)
+// {
+//     cv::Mat modelInput = bgrMat;
+//     cv::dnn::blobFromImage(modelInput, outMat, 1.0 / 255.0, cv::Size(outH, outW), cv::Scalar(0, 0, 0), true, false);
+// }
 
-static void postProcessYolov8Detect(const cv::Mat& bgrMat, int outH, int outW, cv::Mat& outMat)
-{
-    cv::Mat modelInput = bgrMat;
-    cv::dnn::blobFromImage(modelInput, outMat, 1.0 / 255.0, cv::Size(outH, outW), cv::Scalar(0, 0, 0), true, false);
-}
+// static void postProcessYolov8Detect(const cv::Mat& bgrMat, int outH, int outW, cv::Mat& outMat)
+// {
+//     cv::Mat modelInput = bgrMat;
+//     cv::dnn::blobFromImage(modelInput, outMat, 1.0 / 255.0, cv::Size(outH, outW), cv::Scalar(0, 0, 0), true, false);
+// }
 
 static void inputDataPreproce(cv::Mat& mat, std::vector<float>& inData, int inputH, int inputW)
 {

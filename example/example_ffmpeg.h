@@ -1,13 +1,36 @@
 #ifndef EXAMPLE_FFMPEG_H
 #define EXAMPLE_FFMPEG_H
+/*
+ * Copyright (c) 2017 Jun Zhao
+ * Copyright (c) 2017 Kaixuan Liu
+ *
+ * HW Acceleration API (video decoding) decode sample
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 /**
- * @file
- * HW-Accelerated decoding example.
- *
+ * @file HW-accelerated decoding API usage.example
  * @example hw_decode.c
- * This example shows how to do HW-accelerated decoding with output
- * frames from the HW video surfaces.
+ *
+ * Perform HW-accelerated decoding with output frames from HW video
+ * surfaces.
  */
 
 #include <stdio.h>
@@ -94,7 +117,7 @@ static int decode_write(AVCodecContext* avctx, AVPacket* packet)
         } else
             tmp_frame = frame;
 
-        size = av_image_get_buffer_size(tmp_frame->format, tmp_frame->width,
+        /*size = av_image_get_buffer_size(tmp_frame->format, tmp_frame->width,
             tmp_frame->height, 1);
         buffer = av_malloc(size);
         if (!buffer) {
@@ -114,7 +137,7 @@ static int decode_write(AVCodecContext* avctx, AVPacket* packet)
         if ((ret = fwrite(buffer, 1, size, output_file)) < 0) {
             fprintf(stderr, "Failed to dump raw data.\n");
             goto fail;
-        }
+        }*/
 
     fail:
         av_frame_free(&frame);
@@ -125,14 +148,16 @@ static int decode_write(AVCodecContext* avctx, AVPacket* packet)
     }
 }
 
-int main(int argc, char* argv[])
+// vdpau cuda vaapi qsv drm opencl vulkan
+
+int ffmpge_main(int argc, char* argv[])
 {
     AVFormatContext* input_ctx = NULL;
     int video_stream, ret;
     AVStream* video = NULL;
     AVCodecContext* decoder_ctx = NULL;
-    AVCodec* decoder = NULL;
-    AVPacket packet;
+    const AVCodec* decoder = NULL;
+    AVPacket* packet = NULL;
     enum AVHWDeviceType type;
     int i;
 
@@ -148,6 +173,12 @@ int main(int argc, char* argv[])
         while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
             fprintf(stderr, " %s", av_hwdevice_get_type_name(type));
         fprintf(stderr, "\n");
+        return -1;
+    }
+
+    packet = av_packet_alloc();
+    if (!packet) {
+        fprintf(stderr, "Failed to allocate AVPacket\n");
         return -1;
     }
 
@@ -201,27 +232,25 @@ int main(int argc, char* argv[])
     }
 
     /* open the file to dump raw data */
-    output_file = fopen(argv[3], "w+");
+    output_file = fopen(argv[3], "w+b");
 
     /* actual decoding and dump the raw data */
     while (ret >= 0) {
-        if ((ret = av_read_frame(input_ctx, &packet)) < 0)
+        if ((ret = av_read_frame(input_ctx, packet)) < 0)
             break;
 
-        if (video_stream == packet.stream_index)
-            ret = decode_write(decoder_ctx, &packet);
+        if (video_stream == packet->stream_index)
+            ret = decode_write(decoder_ctx, packet);
 
-        av_packet_unref(&packet);
+        av_packet_unref(packet);
     }
 
     /* flush the decoder */
-    packet.data = NULL;
-    packet.size = 0;
-    ret = decode_write(decoder_ctx, &packet);
-    av_packet_unref(&packet);
+    ret = decode_write(decoder_ctx, NULL);
 
     if (output_file)
         fclose(output_file);
+    av_packet_free(&packet);
     avcodec_free_context(&decoder_ctx);
     avformat_close_input(&input_ctx);
     av_buffer_unref(&hw_device_ctx);

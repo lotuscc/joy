@@ -31,6 +31,9 @@ include_directories("./model/")
 include_directories("./tools/")
 # include_directories("./example/")
 
+# include_directories("/usr/include")
+
+
 add_executable(example main.cpp    
     ffmpeg.cpp    
     globalComm.cpp
@@ -50,20 +53,36 @@ add_executable(example main.cpp
     example/example_ffmpeg.h
     tools/face_align.h
     tools/facePreprocess.h
+    tools/ffmpgeDecoderWithCPU.h
+    tools/ffmpgeDecoderWithGPU.h
+
 )
+
+find_package(Boost 1.83.0 COMPONENTS system thread)
+include_directories(${Boost_INCLUDE_DIRS})
+
+
+# set(Boost_USE_STATIC_LIBS OFF)
+# set(Boost_USE_MULTITHREADED ON)
+# set(Boost_USE_STATIC_RUNTIME OFF)
+# find_package(Boost 1.83.0 COMPONENTS *boost libraries here*)
+# if(Boost_FOUND)
+#     include_directories(${Boost_INCLUDE_DIRS})
+#     # add_executable(progname file1.cxx file2.cxx)
+#     target_link_libraries(progname ${Boost_LIBRARIES})
+# endif()
+
 
 find_package(g3log CONFIG REQUIRED)
 find_package(OpenCV 4  REQUIRED)
-target_link_libraries(example PRIVATE g3log ${FFMPEG_LIBS} ${TensorRT_LIBS} ${CUDA_LIBS} opencv_highgui opencv_core opencv_imgproc opencv_dnn)
+target_link_libraries(example PRIVATE g3log ${FFMPEG_LIBS} ${TensorRT_LIBS} ${CUDA_LIBS} ${Boost_LIBRARIES} opencv_highgui opencv_core opencv_imgproc opencv_dnn)
 # target_link_libraries(example ${FFMPEG_LIBS})
 # target_link_libraries(example opencv_highgui opencv_core opencv_imgproc)
 # target_link_libraries(example ${OpenCV_LIBS})
+# target_link_libraries(example ${Boost_LIBRARIES})
 
-# find_package(Boost REQUIRED)
-# include_directories(${Boost_INCLUDE_DIRS})
-# target_link_libraries(your_target ${Boost_LIBRARIES})
 
-MESSAGE( STATUS "this var key = ${OpenCV_LIBS}.")
+MESSAGE( STATUS "this var key = ${Boost_LIBRARIES}")
 
 include(GNUInstallDirs)
 install(TARGETS example
