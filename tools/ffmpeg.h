@@ -15,7 +15,7 @@ extern "C" {
 #include <opencv2/videoio.hpp>
 
 int demo_main(int argc, char** argv);
-
+int demo_main_new(int argc, char** argv);
 int demo_GPU_main();
 
 #endif // FFMPEG_H

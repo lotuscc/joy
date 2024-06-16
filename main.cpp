@@ -19,11 +19,19 @@
 #include <sys/time.h>
 
 #include "example/example_arcFace.h"
+#include "example/example_ffmpeg.h"
 #include "example/example_handPoseX.h"
 #include "example/example_scrfd.h"
 #include "example/example_yolov8Cls.h"
 #include "example/example_yolov8Detect.h"
 #include "example/example_yolov8Pose.h"
+#include "ffmpgeDecoderWithCPU.h"
+#include <boost/lockfree/queue.hpp>
+#include <ffmpgeDecoderWithGPU.h>
+struct DataPipe {
+    cv::Mat mat;
+    int x;
+};
 
 int main(int argc, char** argv)
 {
@@ -32,19 +40,45 @@ int main(int argc, char** argv)
     auto sinkHandle = logworker->addSink(std::make_unique<CustomSink>(),
         &CustomSink::ReceiveLogMessage);
 
+    auto defaultHandler = logworker->addDefaultLogger(argv[0],
+        "/home/lotuscc/Desktop/log");
+
     // initialize the logger before it can receive LOG calls
     initializeLogging(logworker.get());
     LOG(WARNING) << "This log call, may or may not happend before"
                  << "the sinkHandle->call below";
 
+    ffmpge_main(argc, argv);
+
+    ffmpegDecoderWithCPU* decoder = new ffmpegDecoderWithCPU();
+
+    std::string x = "/home/lotuscc/Desktop/out.mov";
+
+    // std::vector<cv::Mat> yuvFrames;
+
+    // decoder->init(x);
+
+    // decoder->setOnFrameCallback([&yuvFrames](const cv::Mat& yuvMat) {
+    //     yuvFrames.push_back(yuvMat.clone());
+    // });
+    // decoder->start();
+
+    // while (!decoder->isEnd())
+    //     ;
+
     // demo_main(argc, argv);
-    demo_GPU_main();
+    // demo_GPU_main();
     // example_yoloDetect_main();
     // example_handPoseX_main();
     // example_yolov8Cls_main();
-    example_scrfdFace_main();
+    // example_scrfdFace_main();
 
     // example_arcFace_main();
+
+    // boost::lockfree::queue<int> queue(128);
+
+    // cv::Mat x;
+    // queue.push(x);
 
     std::cout << "end! \n";
 }

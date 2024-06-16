@@ -13,7 +13,7 @@ void example_handPoseX_main()
     TemplateModel<ContextHandPoseX> handposeX("handposeX", "/home/lotuscc/gitProject/opencv/resnet_50_size-256-handposeX.engine");
     auto infer = handposeX.getContextInfer();
     yoloResult out;
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 1; ++i) {
         struct timeval start;
         struct timeval end;
         gettimeofday(&start, NULL);

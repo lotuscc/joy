@@ -111,6 +111,62 @@ int demo_main(int argc, char** argv)
     return 0;
 }
 
+int demo_main_new(int argc, char** argv)
+{
+    // av_register_all();
+
+    AVFormatContext* formatCtx = NULL;
+    // const char* fileName = "/home/lotuscc/Desktop/out.mov";
+    const char* fileName = "rtsp://127.0.0.1:8554/123";
+
+    // avformat_close_input()
+
+    AVPacket* pkt;
+    const AVCodec* codec;
+    AVCodecParserContext* parser;
+    AVCodecContext* c = NULL;
+    AVFrame* frame;
+
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        exit(1);
+    }
+
+    codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+    if (!codec) {
+        fprintf(stderr, "Codec not found\n");
+        exit(1);
+    }
+
+    parser = av_parser_init(codec->id);
+    if (!parser) {
+        fprintf(stderr, "parser not found\n");
+        exit(1);
+    }
+
+    c = avcodec_alloc_context3(codec);
+    if (!c) {
+        fprintf(stderr, "Could not allocate video codec context\n");
+        exit(1);
+    }
+
+    if (avcodec_open2(c, codec, NULL) < 0) {
+        fprintf(stderr, "Could not open codec\n");
+        exit(1);
+    }
+
+    frame = av_frame_alloc();
+    if (!frame) {
+        fprintf(stderr, "Could not allocate video frame\n");
+        exit(1);
+    }
+
+    // int ret = av_parser_parse2(parser, c, &pkt->data, &pkt->size,
+    //     data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+
+    return 0;
+}
+
 int demo_GPU_main()
 {
     AVFormatContext* formatCtx = NULL;
