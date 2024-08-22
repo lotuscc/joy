@@ -12,7 +12,7 @@ void example_yolov8Seg_main()
 
     std::string pngPath = "/home/lotuscc/work/bus.jpg";
     cv::Mat inMat = cv::imread(pngPath);
-    TemplateModel<ContextYolov8Seg> yolov8nSeg("yolov8nPose", "/home/lotuscc/work/yolov8n-seg.engine");
+    TemplateModel<ContextYolov8Seg> yolov8nSeg("yolov8nSeg", "/home/lotuscc/work/yolov8n-seg.engine");
     yoloResult out;
     auto infer = yolov8nSeg.getContextInfer();
     for (int i = 0; i < 1; ++i) {
