@@ -23,9 +23,15 @@ struct yoloDetection {
 struct yoloPose {
     cv::Rect box;
     float conf = 0.1f;
+    int cls = -1;
     std::vector<cv::Point> keyPoints;
 };
-
+struct yoloSeg {
+    cv::Rect box;
+    float conf = 0.1f;
+    int cls = -1;
+    cv::Mat mask;
+};
 struct scrfdFace {
     cv::Rect box;
     cv::Rect matchBox;
@@ -40,6 +46,7 @@ struct ArcfaceFeature {
 struct yoloResult {
     std::vector<scrfdFace> faceVec;
     std::vector<yoloPose> poseVec;
+    std::vector<yoloSeg> segVec;
     std::vector<yoloDetection> detectVec;
     std::vector<cv::Point> pointVec;
     yoloCls cls;
@@ -48,6 +55,7 @@ struct yoloResult {
     {
         faceVec.clear();
         poseVec.clear();
+        segVec.clear();
         detectVec.clear();
         pointVec.clear();
         faceFeature.feature.clear();

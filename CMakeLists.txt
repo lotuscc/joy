@@ -55,6 +55,8 @@ add_executable(example main.cpp
     tools/facePreprocess.h
     tools/ffmpgeDecoderWithCPU.h
     tools/ffmpgeDecoderWithGPU.h
+    context/contextDoer_yolov8Seg.h
+    example/example_yolov8Seg.h
 
 )
 
