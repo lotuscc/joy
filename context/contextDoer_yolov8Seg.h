@@ -1,11 +1,10 @@
-#ifndef CONTEXTDOER_YOLOV8POSE_H
-#define CONTEXTDOER_YOLOV8POSE_H
-
+#ifndef CONTEXTDOER_YOLOV8SEG_H
+#define CONTEXTDOER_YOLOV8SEG_H
 #include "baseContext.h"
 
-class ContextYolov8Pose : public BaseContext {
+class ContextYolov8Seg : public BaseContext {
 public:
-    ContextYolov8Pose(IExecutionContext* context)
+    ContextYolov8Seg(IExecutionContext* context)
         : BaseContext(context)
     {
     }
@@ -20,26 +19,30 @@ public:
         x_factor_ = (float)inferData.cols / (float)inputW_;
         y_factor_ = (float)inferData.rows / (float)inputH_;
 
-        int h = outputDims_[0].d[1];
-        int grid = outputDims_[0].d[2];
+        int h = outputDims_[1].d[1];
+        int grid = outputDims_[1].d[2];
 
-        cv::Mat data(h, grid, CV_32FC1, cpuOutput_[0]);
+        cv::Mat data(h, grid, CV_32FC1, cpuOutput_[1]);
         cv::Mat dataOut;
         cv::transpose(data, dataOut);
 
-        std::vector<std::vector<cv::Point>> keyPointsVec;
+        int cls = h - 4 - 32;
+
         std::vector<cv::Rect> boxVec;
         std::vector<float> confVec;
         std::vector<int> clsVec;
+        std::vector<cv::Mat> maskVec;
 
         for (size_t i = 0; i < dataOut.rows; ++i) {
             float maxConf = 0.5f;
             int maxCls = -1;
-            const float* pRow = dataOut.ptr<float>(i);
+            float* pRow = dataOut.ptr<float>(i);
 
-            if (pRow[4] > maxConf) {
-                maxConf = pRow[4];
-                maxCls = 0;
+            for (int k = 0; k < cls; ++k) {
+                if (pRow[4 + k] > maxConf) {
+                    maxConf = pRow[4 + k];
+                    maxCls = k;
+                }
             }
 
             if (maxConf > 0.5f) {
@@ -52,35 +55,46 @@ public:
                 int width = int(w * x_factor_);
                 int height = int(h * y_factor_);
 
-                std::vector<cv::Point> keyPoints;
-
-                for (int k = 0; k < 17; ++k) {
-                    float px = pRow[k * 3 + 5];
-                    float py = pRow[k * 3 + 6];
-                    float pconf = pRow[k * 3 + 7];
-                    cv::Point p = cv::Point(int(px * x_factor_), int(py * y_factor_));
-                    keyPoints.emplace_back(p);
-                }
+                cv::Mat padMask(1, 32, CV_32FC1, pRow + 4 + cls);
 
                 boxVec.push_back(cv::Rect(left, top, width, height));
                 confVec.push_back(maxConf);
                 clsVec.push_back(maxCls);
-                keyPointsVec.push_back(keyPoints);
+                maskVec.push_back(padMask.clone());
             }
         }
+
+        int padW = outputDims_[0].d[2];
+        int padH = outputDims_[0].d[3];
+
+        cv::Mat padMask(32, padW * padH, CV_32FC1, cpuOutput_[0]);
 
         std::vector<int> nmsResult;
         cv::dnn::NMSBoxes(boxVec, confVec, 0.5f, 0.5f, nmsResult);
 
         for (size_t i = 0; i < nmsResult.size(); ++i) {
             int idx = nmsResult[i];
-            yoloPose det;
+            yoloSeg det;
             det.box = boxVec[idx];
             det.conf = confVec[idx];
-            det.keyPoints = keyPointsVec[idx];
-            out.poseVec.emplace_back(det);
+
+            cv::Mat proMask = maskVec[idx] * padMask;
+            cv::Mat maskMat = proMask > 0.00001f;
+            cv::Mat mask = maskMat.reshape(1, { padW, padH });
+
+            cv::Mat back(inferData.rows, inferData.cols, CV_8UC1);
+            back.setTo(0);
+            std::vector<cv::Point> pts;
+            pts.push_back(cv::Point(det.box.x, det.box.y));
+            pts.push_back(cv::Point(det.box.x + det.box.width, det.box.y));
+            pts.push_back(cv::Point(det.box.x + det.box.width, det.box.y + det.box.height));
+            pts.push_back(cv::Point(det.box.x, det.box.y + det.box.height));
+            cv::fillPoly(back, pts, 255);
+
+            cv::resize(mask, mask, cv::Size(back.cols, back.rows));
+            det.mask = mask & back;
+            out.segVec.emplace_back(det);
         }
     }
 };
-
-#endif // CONTEXTDOER_YOLOV8POSE_H
+#endif // CONTEXTDOER_YOLOV8SEG_H

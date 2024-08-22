@@ -174,7 +174,7 @@ private:
                 // 检查像素格式
                 if (pix_fmt == AV_PIX_FMT_YUV420P) {
                     LOG(INFO) << "The decoded frame is in YUV 4:2:0 format: " << pix_fmt;
-                } else if (pix_fmt == AV_PIX_FMT_UYVY422) {
+                } else if (pix_fmt == AV_PIX_FMT_NV12) {
                     LOG(INFO) << "The decoded frame is in YUV 4:2:2 (UYVY) format: " << pix_fmt;
                 } else {
                     LOG(INFO) << "The decoded frame is in another pixel format: " << pix_fmt;
@@ -192,10 +192,11 @@ private:
                     onFrameCallback_(yuvMat);
                 }
 
-                // cv::Mat bgrMat;
-                //  cv::cvtColor(yuvMat, bgrMat, cv::COLOR_YUV2BGR_I420);
-                //  cv::imshow("win", bgrMat);
-                //  cv::waitKey(10);
+                /*cv::Mat bgrMat;
+                cv::cvtColor(yuvMat, bgrMat, cv::COLOR_YUV2BGR_I420);
+                cv::imshow("win", bgrMat);
+                cv::waitKey(10);*/
+
                 LOG(INFO) << "codec a frame data, width: " << codecCtx_->width << " , height: " << codecCtx_->height;
                 codecCV_.notify_one(); // 通知发送线程可以继续
             }

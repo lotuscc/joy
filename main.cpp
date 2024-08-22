@@ -25,6 +25,7 @@
 #include "example/example_yolov8Cls.h"
 #include "example/example_yolov8Detect.h"
 #include "example/example_yolov8Pose.h"
+#include "example/example_yolov8Seg.h"
 #include "ffmpgeDecoderWithCPU.h"
 #include <boost/lockfree/queue.hpp>
 #include <ffmpgeDecoderWithGPU.h>
@@ -48,23 +49,27 @@ int main(int argc, char** argv)
     LOG(WARNING) << "This log call, may or may not happend before"
                  << "the sinkHandle->call below";
 
-    ffmpge_main(argc, argv);
+    // example_yolov8Seg_main();
+
+    // ffmpge_main(argc, argv);
 
     ffmpegDecoderWithCPU* decoder = new ffmpegDecoderWithCPU();
 
     std::string x = "/home/lotuscc/Desktop/out.mov";
 
-    // std::vector<cv::Mat> yuvFrames;
+    std::string rtspUrl = "rtsp://admin:murphy123456@192.168.1.64";
 
-    // decoder->init(x);
+    std::vector<cv::Mat> yuvFrames;
 
-    // decoder->setOnFrameCallback([&yuvFrames](const cv::Mat& yuvMat) {
-    //     yuvFrames.push_back(yuvMat.clone());
-    // });
-    // decoder->start();
+    decoder->init(rtspUrl);
 
-    // while (!decoder->isEnd())
-    //     ;
+    decoder->setOnFrameCallback([&yuvFrames](const cv::Mat& yuvMat) {
+        yuvFrames.push_back(yuvMat.clone());
+    });
+    decoder->start();
+
+    while (!decoder->isEnd())
+        ;
 
     // demo_main(argc, argv);
     // demo_GPU_main();

@@ -12,7 +12,7 @@ public:
     {
 
         cv::Mat outData;
-        cv::dnn::blobFromImage(inferData, outData, 1.0 / 255.0, cv::Size(inputH_, inputW_), cv::Scalar(0, 0, 0), true, false);
+        cv::dnn::blobFromImage(inferData, outData, 1.0 / 255.0, cv::Size(inputW_, inputH_), cv::Scalar(0, 0, 0), true, false);
         memcpy(cpuInput_, outData.data, inputC_ * inputW_ * inputH_ * sizeof(float));
     }
     virtual void postProcess(cv::Mat& inferData, yoloResult& out) override
