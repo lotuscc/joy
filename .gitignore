@@ -39,6 +39,9 @@ Thumbs.db
 *.pro.user*
 CMakeLists.txt.user*
 
+# build file
+/build
+
 # xemacs temporary files
 *.flc
 

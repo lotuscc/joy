@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     LOG(WARNING) << "This log call, may or may not happend before"
                  << "the sinkHandle->call below";
 
-    // example_yolov8Seg_main();
+    example_yolov8Seg_main();
 
     // ffmpge_main(argc, argv);
 

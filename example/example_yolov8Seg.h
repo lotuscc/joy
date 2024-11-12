@@ -15,7 +15,7 @@ void example_yolov8Seg_main()
     TemplateModel<ContextYolov8Seg> yolov8nSeg("yolov8nSeg", "/home/lotuscc/work/yolov8n-seg.engine");
     yoloResult out;
     auto infer = yolov8nSeg.getContextInfer();
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         struct timeval start;
         struct timeval end;
         gettimeofday(&start, NULL);
