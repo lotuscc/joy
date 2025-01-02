@@ -12,10 +12,10 @@ void example_yolov8Seg_main()
 
     std::string pngPath = "/home/lotuscc/work/bus.jpg";
     cv::Mat inMat = cv::imread(pngPath);
-    TemplateModel<ContextYolov8Seg> yolov8nSeg("yolov8nPose", "/home/lotuscc/work/yolov8n-seg.engine");
+    TemplateModel<ContextYolov8Seg> yolov8nSeg("yolov8nSeg", "/home/lotuscc/work/yolov8n-seg.engine");
     yoloResult out;
     auto infer = yolov8nSeg.getContextInfer();
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         struct timeval start;
         struct timeval end;
         gettimeofday(&start, NULL);
@@ -31,8 +31,8 @@ void example_yolov8Seg_main()
         inMat.setTo(cv::Scalar(125 * i % 255, 34 * i % 255, 74 * i % 255), out.segVec[i].mask);
     }
     // 在窗口中显示图片
-    cv::namedWindow("keypoint", 0);
+    /*cv::namedWindow("keypoint", 0);
     cv::imshow("keypoint", inMat);
-    cv::waitKey(0);
+    cv::waitKey(0);*/
 }
 #endif // EXAMPLE_YOLOV8SEG_H

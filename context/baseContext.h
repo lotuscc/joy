@@ -8,6 +8,8 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+#include "baseTensor.h"
+
 using namespace nvinfer1;
 
 class BaseContext {
@@ -76,28 +78,35 @@ public:
         inputTensorName_ = engine.getIOTensorName(0);
         Dims dimIn = engine.getTensorShape(inputTensorName_.c_str());
         DataType dataTypeIn = engine.getTensorDataType(inputTensorName_.c_str());
+
+        inputTensor.init(inputTensorName_, dimIn, dataTypeIn);
+
         batSize_ = dimIn.d[0];
         inputC_ = dimIn.d[1];
         inputW_ = dimIn.d[2];
         inputH_ = dimIn.d[3];
         inputSize_ = batSize_ * inputC_ * inputW_ * inputH_;
         cpuInput_ = (float*)malloc(inputSize_ * sizeof(float));
-        cudaMalloc(&gpuInput_, inputSize_ * sizeof(float));
+        CUDA_CHECK(cudaMalloc(&gpuInput_, inputSize_ * sizeof(float)));
 
         for (int i = 1; i < num; ++i) {
-            std::string x = engine.getIOTensorName(i);
-            Dims dim = engine.getTensorShape(x.c_str());
-            DataType dataTypeOut = engine.getTensorDataType(x.c_str());
+            std::string name = engine.getIOTensorName(i);
+            Dims dim = engine.getTensorShape(name.c_str());
+            DataType dataTypeOut = engine.getTensorDataType(name.c_str());
+
+            Tensor tensor(name, dim, dataTypeOut);
+            outputTensor.push_back(std::move(tensor));
+
             int size = getSize(dim);
             outputSize_.push_back(size);
-            outputTensorNameVec_.push_back(x);
+            outputTensorNameVec_.push_back(name);
             outputDims_.push_back(dim);
             float* pcpu = (float*)malloc(size * sizeof(float));
             cpuOutput_.push_back(pcpu);
             float* pgpu;
-            cudaMalloc(&pgpu, size * sizeof(float));
+            CUDA_CHECK(cudaMalloc(&pgpu, size * sizeof(float)));
             gpuOutput_.push_back(pgpu);
-            std::cout << x << "\n";
+            std::cout << name << "\n";
         }
     }
 
@@ -108,7 +117,7 @@ public:
             cpuInput_ = nullptr;
         }
         if (gpuInput_ != nullptr) {
-            cudaFree(gpuInput_);
+            CUDA_CHECK(cudaFree(gpuInput_));
             gpuInput_ = nullptr;
         }
         for (int i = 0; i < cpuOutput_.size(); ++i) {
@@ -119,7 +128,7 @@ public:
         }
         for (int i = 0; i < gpuOutput_.size(); ++i) {
             if (gpuOutput_[i] != nullptr) {
-                cudaFree(gpuOutput_[i]);
+                CUDA_CHECK(cudaFree(gpuOutput_[i]));
                 gpuOutput_[i] = nullptr;
             }
         }
@@ -137,6 +146,9 @@ public:
     float* cpuInput_ = nullptr;
     float* gpuInput_ = nullptr;
     std::string inputTensorName_ = "keypoint_input";
+
+    Tensor inputTensor;
+    std::vector<Tensor> outputTensor;
 
     std::vector<int> outputSize_;
     std::vector<std::string> outputTensorNameVec_;
