@@ -31,8 +31,8 @@ void example_yolov8Seg_main()
         inMat.setTo(cv::Scalar(125 * i % 255, 34 * i % 255, 74 * i % 255), out.segVec[i].mask);
     }
     // 在窗口中显示图片
-    cv::namedWindow("keypoint", 0);
+    /*cv::namedWindow("keypoint", 0);
     cv::imshow("keypoint", inMat);
-    cv::waitKey(0);
+    cv::waitKey(0);*/
 }
 #endif // EXAMPLE_YOLOV8SEG_H

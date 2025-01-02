@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(example LANGUAGES CXX)
+project(example LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -57,8 +57,32 @@ add_executable(example main.cpp
     tools/ffmpgeDecoderWithGPU.h
     context/contextDoer_yolov8Seg.h
     example/example_yolov8Seg.h
-
+    context/baseTensor.h
+    context/macro.h
 )
+
+include(GNUInstallDirs)
+install(TARGETS example
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+include(FindCUDA/select_compute_arch)
+CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
+string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
+string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
+string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
+SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
+
+set(BUILD_SHARED_LIBS ON)
+
+add_library(cudalibx SHARED
+    hello.h
+    hello.cu
+    imageProcess.cu
+    imageProcess.h)
+target_compile_features(cudalibx PUBLIC cxx_std_11)
+
 
 find_package(Boost 1.83.0 COMPONENTS system thread)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -74,20 +98,21 @@ include_directories(${Boost_INCLUDE_DIRS})
 #     target_link_libraries(progname ${Boost_LIBRARIES})
 # endif()
 
-
 find_package(g3log CONFIG REQUIRED)
 find_package(OpenCV 4  REQUIRED)
-target_link_libraries(example PRIVATE g3log ${FFMPEG_LIBS} ${TensorRT_LIBS} ${CUDA_LIBS} ${Boost_LIBRARIES} opencv_highgui opencv_core opencv_imgproc opencv_dnn)
+
+# PRIVATE
+
+target_link_libraries(example PRIVATE g3log ${FFMPEG_LIBS} ${TensorRT_LIBS} ${CUDA_LIBS} ${Boost_LIBRARIES} opencv_highgui opencv_core opencv_imgproc opencv_dnn cudalibx)
+
 # target_link_libraries(example ${FFMPEG_LIBS})
 # target_link_libraries(example opencv_highgui opencv_core opencv_imgproc)
 # target_link_libraries(example ${OpenCV_LIBS})
 # target_link_libraries(example ${Boost_LIBRARIES})
 
 
-MESSAGE( STATUS "this var key = ${Boost_LIBRARIES}")
+MESSAGE( STATUS "this FFMPEG_LIBS var key = ${FFMPEG_LIBS}")
+MESSAGE( STATUS "this TensorRT_LIBS var key = ${TensorRT_LIBS}")
+MESSAGE( STATUS "this CUDA_LIBS var key = ${CUDA_LIBS}")
+MESSAGE( STATUS "this Boost_LIBRARIES var key = ${Boost_LIBRARIES}")
 
-include(GNUInstallDirs)
-install(TARGETS example
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)

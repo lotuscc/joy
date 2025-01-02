@@ -34,8 +34,16 @@ struct DataPipe {
     int x;
 };
 
+#include "hello.h"
+#include "imageProcess.h"
+
 int main(int argc, char** argv)
 {
+
+    say_hello();
+
+    example_interpolate();
+
     using namespace g3;
     std::unique_ptr<LogWorker> logworker { LogWorker::createLogWorker() };
     auto sinkHandle = logworker->addSink(std::make_unique<CustomSink>(),
@@ -51,13 +59,16 @@ int main(int argc, char** argv)
 
     example_yolov8Seg_main();
 
+    while (1)
+        ;
     // ffmpge_main(argc, argv);
 
     ffmpegDecoderWithCPU* decoder = new ffmpegDecoderWithCPU();
 
     std::string x = "/home/lotuscc/Desktop/out.mov";
 
-    std::string rtspUrl = "rtsp://admin:murphy123456@192.168.1.64";
+    // std::string rtspUrl = "rtsp://admin:murphy123456@192.168.1.64";
+    std::string rtspUrl = "rtsp://localhost:8554/stream";
 
     std::vector<cv::Mat> yuvFrames;
 
