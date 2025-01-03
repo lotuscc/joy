@@ -12,7 +12,7 @@ public:
     {
         cv::Mat outData;
         cv::dnn::blobFromImage(inferData, outData, 1.0 / 128.0, cv::Size(inputW_, inputH_), cv::Scalar(127.5, 127.5, 127.5), true, false);
-        memcpy(cpuInput_, outData.data, inputC_ * inputW_ * inputH_ * sizeof(float));
+        memcpy(inputTensor.host(), outData.data, inputC_ * inputW_ * inputH_ * sizeof(float));
     }
 
     void generate_bboxes_kps(std::vector<cv::Rect>& boxVec, std::vector<float>& confVec, std::vector<std::vector<cv::Point>>& landMarksVec, float* baseConf, float* baseBox, float* baselandMarks, int stride, int grid)
@@ -58,14 +58,14 @@ public:
         std::vector<float> confVec;
         std::vector<std::vector<cv::Point>> landMarksVec;
 
-        int grid8 = outputDims_[0].d[1];
-        generate_bboxes_kps(boxVec, confVec, landMarksVec, cpuOutput_[0], cpuOutput_[1], cpuOutput_[2], 8, grid8);
+        int grid8 = outputTensor[0].dims().d[1];
+        generate_bboxes_kps(boxVec, confVec, landMarksVec, (float*)outputTensor[0].host(), (float*)outputTensor[1].host(), (float*)outputTensor[2].host(), 8, grid8);
 
-        int grid16 = outputDims_[3].d[1];
-        generate_bboxes_kps(boxVec, confVec, landMarksVec, cpuOutput_[3], cpuOutput_[4], cpuOutput_[5], 16, grid16);
+        int grid16 = outputTensor[3].dims().d[1];
+        generate_bboxes_kps(boxVec, confVec, landMarksVec, (float*)outputTensor[3].host(), (float*)outputTensor[4].host(), (float*)outputTensor[5].host(), 16, grid16);
 
-        int grid32 = outputDims_[6].d[1];
-        generate_bboxes_kps(boxVec, confVec, landMarksVec, cpuOutput_[6], cpuOutput_[7], cpuOutput_[8], 32, grid32);
+        int grid32 = outputTensor[6].dims().d[1];
+        generate_bboxes_kps(boxVec, confVec, landMarksVec, (float*)outputTensor[6].host(), (float*)outputTensor[7].host(), (float*)outputTensor[8].host(), 32, grid32);
         std::vector<int> nmsResult;
         cv::dnn::NMSBoxes(boxVec, confVec, 0.5f, 0.5f, nmsResult);
 

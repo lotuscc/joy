@@ -40,9 +40,9 @@ struct DataPipe {
 int main(int argc, char** argv)
 {
 
-    say_hello();
+    // say_hello();
 
-    example_interpolate();
+    // example_interpolate();
 
     using namespace g3;
     std::unique_ptr<LogWorker> logworker { LogWorker::createLogWorker() };
