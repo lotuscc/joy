@@ -12,17 +12,17 @@ public:
     {
         cv::Mat outData;
         cv::dnn::blobFromImage(inferData, outData, 1.0 / 255.0, cv::Size(inputW_, inputH_), cv::Scalar(0, 0, 0), true, false);
-        memcpy(cpuInput_, outData.data, inputC_ * inputW_ * inputH_ * sizeof(float));
+        memcpy(inputTensor.host(), outData.data, inputC_ * inputW_ * inputH_ * sizeof(float));
     }
     virtual void postProcess(cv::Mat& inferData, yoloResult& out) override
     {
         x_factor_ = (float)inferData.cols / (float)inputW_;
         y_factor_ = (float)inferData.rows / (float)inputH_;
 
-        int h = outputDims_[1].d[1];
-        int grid = outputDims_[1].d[2];
+        int h = outputTensor[1].dims().d[1];
+        int grid = outputTensor[1].dims().d[2];
 
-        cv::Mat data(h, grid, CV_32FC1, cpuOutput_[1]);
+        cv::Mat data(h, grid, CV_32FC1, outputTensor[1].host());
         cv::Mat dataOut;
         cv::transpose(data, dataOut);
 
@@ -64,10 +64,10 @@ public:
             }
         }
 
-        int padW = outputDims_[0].d[2];
-        int padH = outputDims_[0].d[3];
+        int padW = outputTensor[0].dims().d[2];
+        int padH = outputTensor[0].dims().d[3];
 
-        cv::Mat padMask(32, padW * padH, CV_32FC1, cpuOutput_[0]);
+        cv::Mat padMask(32, padW * padH, CV_32FC1, outputTensor[0].host());
 
         std::vector<int> nmsResult;
         cv::dnn::NMSBoxes(boxVec, confVec, 0.5f, 0.5f, nmsResult);

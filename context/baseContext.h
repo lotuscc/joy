@@ -24,15 +24,6 @@ public:
         FreeMalloc();
     }
 
-    static int getSize(Dims& dim)
-    {
-        int size = 1;
-        for (int i = 0; i < dim.nbDims; ++i) {
-            size *= dim.d[i];
-        }
-        return size;
-    }
-
     virtual void preProcess(cv::Mat& inferData)
     {
         LOG(INFO) << "preProcess is empty !";
@@ -47,17 +38,15 @@ public:
         preProcess(inferData);
 
         cudaStreamSynchronize(stream_);
-        // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
-        cudaMemcpyAsync(gpuInput_, cpuInput_, inputSize_ * sizeof(float), cudaMemcpyHostToDevice, stream_);
-        // context->enqueue(batchSize, buffers, stream, nullptr);
+        cudaMemcpyAsync(inputTensor.device(), inputTensor.host(), inputTensor.bytes(), cudaMemcpyHostToDevice, stream_);
 
-        context_->setTensorAddress(inputTensorName_.c_str(), gpuInput_);
-        for (int i = 0; i < outputTensorNameVec_.size(); ++i) {
-            context_->setTensorAddress(outputTensorNameVec_[i].c_str(), gpuOutput_[i]);
+        context_->setTensorAddress(inputTensor.name().c_str(), inputTensor.device());
+        for (int i = 0; i < outputTensor.size(); ++i) {
+            context_->setTensorAddress(outputTensor[i].name().c_str(), outputTensor[i].device());
         }
         context_->enqueueV3(stream_);
-        for (int i = 0; i < outputTensorNameVec_.size(); ++i) {
-            cudaMemcpyAsync(cpuOutput_[i], gpuOutput_[i], outputSize_[i] * sizeof(float), cudaMemcpyDeviceToHost, stream_);
+        for (int i = 0; i < outputTensor.size(); ++i) {
+            cudaMemcpyAsync(outputTensor[i].host(), outputTensor[i].device(), outputTensor[i].bytes(), cudaMemcpyDeviceToHost, stream_);
         }
         cudaStreamSynchronize(stream_);
 
@@ -75,19 +64,16 @@ public:
         int num = engine.getNbIOTensors();
         assert(num >= 2);
 
-        inputTensorName_ = engine.getIOTensorName(0);
-        Dims dimIn = engine.getTensorShape(inputTensorName_.c_str());
-        DataType dataTypeIn = engine.getTensorDataType(inputTensorName_.c_str());
+        std::string inputName = engine.getIOTensorName(0);
+        Dims dimIn = engine.getTensorShape(inputName.c_str());
+        DataType dataTypeIn = engine.getTensorDataType(inputName.c_str());
 
-        inputTensor.init(inputTensorName_, dimIn, dataTypeIn);
+        inputTensor.init(inputName, dimIn, dataTypeIn);
 
         batSize_ = dimIn.d[0];
         inputC_ = dimIn.d[1];
         inputW_ = dimIn.d[2];
         inputH_ = dimIn.d[3];
-        inputSize_ = batSize_ * inputC_ * inputW_ * inputH_;
-        cpuInput_ = (float*)malloc(inputSize_ * sizeof(float));
-        CUDA_CHECK(cudaMalloc(&gpuInput_, inputSize_ * sizeof(float)));
 
         for (int i = 1; i < num; ++i) {
             std::string name = engine.getIOTensorName(i);
@@ -97,41 +83,12 @@ public:
             Tensor tensor(name, dim, dataTypeOut);
             outputTensor.push_back(std::move(tensor));
 
-            int size = getSize(dim);
-            outputSize_.push_back(size);
-            outputTensorNameVec_.push_back(name);
-            outputDims_.push_back(dim);
-            float* pcpu = (float*)malloc(size * sizeof(float));
-            cpuOutput_.push_back(pcpu);
-            float* pgpu;
-            CUDA_CHECK(cudaMalloc(&pgpu, size * sizeof(float)));
-            gpuOutput_.push_back(pgpu);
             std::cout << name << "\n";
         }
     }
 
     void FreeMalloc()
     {
-        if (cpuInput_ != nullptr) {
-            free(cpuInput_);
-            cpuInput_ = nullptr;
-        }
-        if (gpuInput_ != nullptr) {
-            CUDA_CHECK(cudaFree(gpuInput_));
-            gpuInput_ = nullptr;
-        }
-        for (int i = 0; i < cpuOutput_.size(); ++i) {
-            if (cpuOutput_[i] != nullptr) {
-                free(cpuOutput_[i]);
-                cpuOutput_[i] = nullptr;
-            }
-        }
-        for (int i = 0; i < gpuOutput_.size(); ++i) {
-            if (gpuOutput_[i] != nullptr) {
-                CUDA_CHECK(cudaFree(gpuOutput_[i]));
-                gpuOutput_[i] = nullptr;
-            }
-        }
     }
 
     float x_factor_ = 1.0f;
@@ -142,19 +99,8 @@ public:
     int inputW_;
     int inputH_;
 
-    int inputSize_;
-    float* cpuInput_ = nullptr;
-    float* gpuInput_ = nullptr;
-    std::string inputTensorName_ = "keypoint_input";
-
     Tensor inputTensor;
     std::vector<Tensor> outputTensor;
-
-    std::vector<int> outputSize_;
-    std::vector<std::string> outputTensorNameVec_;
-    std::vector<float*> cpuOutput_;
-    std::vector<float*> gpuOutput_;
-    std::vector<Dims> outputDims_;
 
     IExecutionContext* context_;
     cudaStream_t stream_;
