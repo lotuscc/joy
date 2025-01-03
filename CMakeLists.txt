@@ -59,6 +59,8 @@ add_executable(example main.cpp
     example/example_yolov8Seg.h
     context/baseTensor.h
     context/macro.h
+    manager/gpuThread.h
+    manager/gpuManager.h
 )
 
 include(GNUInstallDirs)
@@ -80,7 +82,8 @@ add_library(cudalibx SHARED
     hello.h
     hello.cu
     imageProcess.cu
-    imageProcess.h)
+    imageProcess.h
+)
 target_compile_features(cudalibx PUBLIC cxx_std_11)
 
 
