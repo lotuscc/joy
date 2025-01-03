@@ -5,6 +5,13 @@
 #include "globalComm.h"
 #include "templateModel.h"
 
+struct name {
+    int cardId;
+    std::string name;
+    cv::Mat mat;
+    yoloResult out;
+};
+
 void example_yolov8Seg_main()
 {
 
