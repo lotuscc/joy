@@ -54,13 +54,15 @@ add_executable(example main.cpp
     tools/face_align.h
     tools/facePreprocess.h
     tools/ffmpgeDecoderWithCPU.h
-    tools/ffmpgeDecoderWithGPU.h
+    tools/ffmpgeDecoderWithGPU.h    
+    tools/cudaBandWidthTest.hpp
     context/contextDoer_yolov8Seg.h
     example/example_yolov8Seg.h
     context/baseTensor.h
     context/macro.h
     manager/gpuThread.h
     manager/gpuManager.h
+
 )
 
 include(GNUInstallDirs)

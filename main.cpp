@@ -27,6 +27,7 @@
 #include "example/example_yolov8Pose.h"
 #include "example/example_yolov8Seg.h"
 #include "ffmpgeDecoderWithCPU.h"
+#include "tools/cudaBandWidthTest.hpp"
 #include <boost/lockfree/queue.hpp>
 #include <ffmpgeDecoderWithGPU.h>
 struct DataPipe {
@@ -39,6 +40,8 @@ struct DataPipe {
 
 int main(int argc, char** argv)
 {
+
+    cudaBandWidthTest::GetInstance()->Run();
 
     // say_hello();
 
