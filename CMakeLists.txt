@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(example LANGUAGES CXX CUDA)
 
+set(CMAKE_C_COMPILER /opt/cuda/bin/gcc)
+set(CMAKE_CXX_COMPILER /opt/cuda/bin/g++)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -62,7 +65,6 @@ add_executable(example main.cpp
     context/macro.h
     manager/gpuThread.h
     manager/gpuManager.h
-
 )
 
 include(GNUInstallDirs)

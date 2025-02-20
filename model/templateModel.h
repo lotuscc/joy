@@ -88,7 +88,54 @@ public:
         // IRuntime* runtime = nvinfer1::createInferRuntime(logger);
         // ICudaEngine* engine = runtime->deserializeCudaEngine(serializedModel->data(), serializedModel->size());
     }
+    static void saveOnnxModelBatch(const std::string& onnxPath, const std::string& savePath,
+        const int maxBatchSize = 1, const int imgH = 640, const int imgW = 640)
+    {
+        Logger logger;
+        // std::string onnxPath = "/home/lotuscc/gitProject/onnx_run/resnet_50_size-256-handposeX.onnx";
 
+        IBuilder* builder = createInferBuilder(logger);
+
+        uint32_t flag = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+
+        INetworkDefinition* network = builder->createNetworkV2(flag);
+
+        nvonnxparser::IParser* parser = nvonnxparser::createParser(*network, logger);
+        parser->parseFromFile(onnxPath.c_str(), static_cast<int32_t>(ILogger::Severity::kWARNING));
+
+        for (int32_t i = 0; i < parser->getNbErrors(); ++i) {
+            std::cout << parser->getError(i)->desc() << std::endl;
+        }
+
+        IBuilderConfig* config = builder->createBuilderConfig();
+
+        if (builder->platformHasFastFp16()) {
+            config->setFlag(BuilderFlag::kFP16);
+        }
+
+        Dims shapeMin = Dims4 { 1, 3, imgH, imgW }; // 最小形状
+        Dims shapeOpt = Dims4 { maxBatchSize, 3, imgH, imgW }; // 最优形状
+        Dims shapeMax = Dims4 { maxBatchSize, 3, imgH, imgW }; // 最大形状
+        const char* inputName = network->getInput(0)->getName(); // 获取输入张量名称
+        auto profile = builder->createOptimizationProfile(); // 创建优化配置文件
+        if (!profile) {
+            std::cerr << "Failed to create optimization profile" << std::endl;
+            return;
+        }
+        profile->setDimensions(inputName, OptProfileSelector::kMIN, shapeMin);
+        profile->setDimensions(inputName, OptProfileSelector::kOPT, shapeOpt);
+        profile->setDimensions(inputName, OptProfileSelector::kMAX, shapeMax);
+        config->addOptimizationProfile(profile);
+
+        config->setMemoryPoolLimit(MemoryPoolType::kWORKSPACE, 1U << 20);
+        IHostMemory* serializedModel = builder->buildSerializedNetwork(*network, *config);
+
+        std::ofstream ofs(savePath, std::ios::out | std::ios::binary);
+        ofs.write((char*)(serializedModel->data()), serializedModel->size());
+        ofs.close();
+        // IRuntime* runtime = nvinfer1::createInferRuntime(logger);
+        // ICudaEngine* engine = runtime->deserializeCudaEngine(serializedModel->data(), serializedModel->size());
+    }
     std::string modelName_;
     std::string engineName_;
     Logger logger_;

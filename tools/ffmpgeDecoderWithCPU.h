@@ -31,8 +31,8 @@ public:
     bool init(const std::string& path)
     {
 
-	AVDictionary *opts = 0;
-	av_dict_set(&opts, "rtsp_transport", "tcp", 0);
+        AVDictionary* opts = 0;
+        av_dict_set(&opts, "rtsp_transport", "tcp", 0);
 
         if (avformat_open_input(&formatCtx_, path.c_str(), NULL, &opts) < 0) {
             LOG(WARNING) << "can not open file!";

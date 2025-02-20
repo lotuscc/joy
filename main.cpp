@@ -41,7 +41,7 @@ struct DataPipe {
 int main(int argc, char** argv)
 {
 
-    cudaBandWidthTest::GetInstance()->Run();
+    // cudaBandWidthTest::GetInstance()->Run();
 
     // say_hello();
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
     LOG(WARNING) << "This log call, may or may not happend before"
                  << "the sinkHandle->call below";
 
-    example_yolov8Seg_main();
+    example_yoloDetect_main();
 
     while (1)
         ;

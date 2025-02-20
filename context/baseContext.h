@@ -54,6 +54,34 @@ public:
 
         return true;
     }
+    bool dynamicInference(cv::Mat& inferData, yoloResult& out)
+    {
+        preProcess(inferData);
+
+        cudaStreamSynchronize(stream_);
+        cudaMemcpyAsync(inputTensor.device(), inputTensor.host(), inputTensor.bytes(), cudaMemcpyHostToDevice, stream_);
+
+        context_->setTensorAddress(inputTensor.name().c_str(), inputTensor.device());
+        for (int i = 0; i < outputTensor.size(); ++i) {
+            context_->setTensorAddress(outputTensor[i].name().c_str(), outputTensor[i].device());
+        }
+
+        // 设置动态批量大小
+        if (!context_->setBindingDimensions(0, Dims { 1, 3, 640, 640 })) {
+            std::cerr << "Failed to set binding dimensions" << std::endl;
+            return false;
+        }
+
+        context_->enqueueV3(stream_);
+        for (int i = 0; i < outputTensor.size(); ++i) {
+            cudaMemcpyAsync(outputTensor[i].host(), outputTensor[i].device(), outputTensor[i].bytes(), cudaMemcpyDeviceToHost, stream_);
+        }
+        cudaStreamSynchronize(stream_);
+
+        postProcess(inferData, out);
+
+        return true;
+    }
 
     void Malloc()
     {
